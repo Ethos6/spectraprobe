@@ -1,0 +1,45 @@
+{
+  "name": "spectraprobe",
+  "version": "0.1.0",
+  "description": "Original open-source static software analysis toolkit: identify, hash, and inspect executables (PE/ELF/Mach-O), archives (APK/JAR/Electron), WebAssembly and JavaScript projects. CLI, pluggable providers, evidence model, and an MCP server. No cloud, no telemetry.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ethos6",
+  "homepage": "https://github.com/Ethos6/spectraprobe",
+  "repository": { "type": "git", "url": "https://github.com/Ethos6/spectraprobe.git" },
+  "bugs": { "url": "https://github.com/Ethos6/spectraprobe/issues" },
+  "keywords": [
+    "reverse-engineering", "binary-analysis", "static-analysis", "malware-analysis",
+    "security-research", "pe", "elf", "mach-o", "wasm", "apk", "disassembler",
+    "file-identification", "entropy", "yara", "mcp", "mcp-server", "cli", "typescript",
+    "defensive-security", "forensics"
+  ],
+  "engines": { "node": ">=18" },
+  "bin": { "spectra": "dist/cli/cli.js" },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "spectra": "node --experimental-strip-types src/cli/cli.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "acorn": "^8.12.1",
+    "acorn-walk": "^8.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
