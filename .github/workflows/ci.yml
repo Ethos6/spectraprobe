@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ["18", "20", "22"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
+      - name: Unit & integration tests
+        run: npm test
+      - name: Smoke-test the CLI on a real binary (POSIX)
+        if: runner.os != 'Windows'
+        run: |
+          node dist/cli/cli.js inspect "$(command -v node)" --no-color
+          node dist/cli/cli.js providers --format json > providers.json
+          node dist/cli/cli.js report "$(command -v node)" --format markdown --out report.md
+          test -s report.md
+      - name: Smoke-test the CLI on a real binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          node dist/cli/cli.js inspect "$env:ComSpec" --no-color
+          node dist/cli/cli.js report "$env:ComSpec" --format markdown --out report.md
+          if (-not (Test-Path report.md)) { exit 1 }
+      - name: Smoke-test the MCP server end to end
+        if: runner.os != 'Windows'
+        run: |
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05"}}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+            '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_analysis_status","arguments":{}}}' \
+            | node dist/cli/cli.js mcp | tee mcp.out
+          grep -q '"serverInfo"' mcp.out
+          grep -q 'probe_target' mcp.out
