@@ -10,6 +10,7 @@ import { extractStrings } from "../util/strings.js";
 import { detectProviders, providersForFormat } from "../providers/external.js";
 import { Session } from "../evidence/session.js";
 import { toMarkdown, toJson } from "../report/report.js";
+import { diffReports } from "../analyze/diff.js";
 import type { AnalysisReport, Finding } from "../types.js";
 
 export interface McpTool {
@@ -36,6 +37,7 @@ export const TOOLS: McpTool[] = [
   { name: "inspect_resources", description: "List archive entries / embedded resources (ZIP, JAR, APK).", inputSchema: pathArg },
   { name: "search_evidence", description: "Search findings gathered in this session by text, category, or confidence.", inputSchema: { type: "object", properties: { text: { type: "string" }, category: { type: "string" }, minConfidence: { type: "string", enum: ["low", "medium", "high"] } }, additionalProperties: false } },
   { name: "create_report", description: "Produce a full analysis report for a target in markdown or json.", inputSchema: { type: "object", properties: { path: { type: "string" }, format: { type: "string", enum: ["markdown", "json"], default: "markdown" } }, required: ["path"], additionalProperties: false } },
+  { name: "diff_targets", description: "Compare two builds of a binary/archive/project: added and removed imports, exports, sections, dependencies, symbols and indicators.", inputSchema: { type: "object", properties: { a: { type: "string", description: "Path to the old/base target" }, b: { type: "string", description: "Path to the new target" } }, required: ["a", "b"], additionalProperties: false } },
   { name: "list_providers", description: "List external analysis providers (YARA, radare2, Ghidra, …) and their availability.", inputSchema: { type: "object", properties: {}, additionalProperties: false } },
   { name: "get_analysis_status", description: "Report engine version, session statistics, and analysed artifacts.", inputSchema: { type: "object", properties: {}, additionalProperties: false } },
 ];
@@ -116,6 +118,13 @@ export class SpectraMcp {
         const report = await this.analyze(requirePath(args));
         const format = args.format === "json" ? "json" : "markdown";
         return { format, content: format === "json" ? toJson(report) : toMarkdown(report) };
+      }
+      case "diff_targets": {
+        if (typeof args.a !== "string" || typeof args.b !== "string") {
+          throw new Error("missing required arguments: a, b");
+        }
+        const [ra, rb] = await Promise.all([this.analyze(args.a), this.analyze(args.b)]);
+        return diffReports(ra, rb);
       }
       case "list_providers":
         return { providers: await detectProviders() };
