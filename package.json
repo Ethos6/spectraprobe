@@ -1,6 +1,6 @@
 {
   "name": "spectraprobe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Original open-source static software analysis toolkit: identify, hash, and inspect executables (PE/ELF/Mach-O), archives (APK/JAR/Electron), WebAssembly and JavaScript projects. CLI, pluggable providers, evidence model, and an MCP server. No cloud, no telemetry.",
   "type": "module",
   "license": "MIT",

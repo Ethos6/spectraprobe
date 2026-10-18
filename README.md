@@ -7,12 +7,17 @@
 **Identify, hash and inspect executables, archives, WebAssembly and JavaScript — from one CLI, one library, and a real MCP server. No cloud. No telemetry. Everything runs locally.**
 
 [![CI](https://github.com/Ethos6/spectraprobe/actions/workflows/ci.yml/badge.svg)](https://github.com/Ethos6/spectraprobe/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Ethos6/spectraprobe)](https://github.com/Ethos6/spectraprobe/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A518-339933.svg?logo=node.js&logoColor=white)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg?logo=typescript&logoColor=white)](tsconfig.json)
 [![MCP](https://img.shields.io/badge/MCP-server-8A2BE2.svg)](#-mcp-server)
 
 [Quick start](#-quick-start) · [What it does](#-what-it-does) · [CLI](#-cli) · [MCP server](#-mcp-server) · [Providers](#-pluggable-providers) · [Library](#-library-api) · [Scope & ethics](#-authorized-use)
+
+<img src="docs/demo.gif" alt="spectra inspect and spectra diff running on real binaries" width="850">
+
+<sub>Real output from <code>spectra inspect</code> and <code>spectra diff</code> on system binaries. Re-record with <code>python scripts/record_demo.py</code>.</sub>
 
 </div>
 
@@ -56,6 +61,7 @@ hardening
 | **WebAssembly** | Section table, imports and exports with names and kinds, custom sections |
 | **Archives** | ZIP/JAR/APK entry listing; JAR manifest; APK DEX/manifest summary (reads deflate & stored entries) |
 | **JavaScript / TS** | Real **acorn AST** for JS (imports, requires, exports, functions, classes, `eval`/dynamic `import`), capability-reference hints; regex fallback for TypeScript; whole-project module graph |
+| **Diff** | `spectra diff old new` compares two builds: added/removed imports, exports, dependencies, symbols, indicators and sections, ranked by size change. Exit code 1 when they differ, like `diff` |
 | **Evidence model** | Findings cite evidence, carry certainty/confidence and limitations; searchable sessions persisted to disk |
 | **Knowledge graph** | Relationship graph linking artifacts ↔ imports, exports, dependencies, sections, indicators |
 | **Reporting** | Terminal, JSON and Markdown reports with reproducibility metadata |
@@ -69,7 +75,7 @@ git clone https://github.com/Ethos6/spectraprobe
 cd spectraprobe
 npm install
 npm run build
-npm test            # 38 tests across parsers, pipeline, and the MCP layer
+npm test            # 45 tests across parsers, pipeline, diff, and the MCP layer
 
 # analyse something real
 node dist/cli/cli.js inspect "$(command -v node)"
@@ -96,6 +102,7 @@ spectra resources <file>        List archive entries / embedded resources
 spectra providers               List external providers and availability
 spectra report <target>         Full report  (--format markdown|json  --out file)
 spectra graph <target>          Emit the knowledge graph as JSON
+spectra diff <old> <new>        Compare two builds (exit 1 if they differ)
 spectra mcp                     Start the MCP server (stdio)
 ```
 
@@ -110,6 +117,9 @@ spectra report ./firmware.bin --format markdown --out firmware.md
 
 # Just the import table of a DLL, as JSON
 spectra imports ./library.dll --format json
+
+# What changed between two releases? New imports, dropped libraries, new URLs…
+spectra diff ./app-1.4.exe ./app-1.5.exe
 ```
 
 ## 🔌 MCP server
@@ -125,9 +135,9 @@ SpectraProbe speaks the Model Context Protocol over stdio, so any MCP-compatible
 }
 ```
 
-Twelve tools, each backed by the same engine as the CLI:
+Thirteen tools, each backed by the same engine as the CLI:
 
-`probe_target` · `inspect_metadata` · `extract_strings` · `inspect_dependencies` · `inspect_symbols` · `inspect_imports` · `analyze_javascript` · `inspect_resources` · `search_evidence` · `create_report` · `list_providers` · `get_analysis_status`
+`probe_target` · `inspect_metadata` · `extract_strings` · `inspect_dependencies` · `inspect_symbols` · `inspect_imports` · `analyze_javascript` · `inspect_resources` · `diff_targets` · `search_evidence` · `create_report` · `list_providers` · `get_analysis_status`
 
 Each tool has an explicit input schema, returns structured JSON, and reports clear errors for unsupported operations. Requests are processed in order so session-aware tools (`search_evidence`, `get_analysis_status`) stay consistent. A quick manual check:
 
@@ -201,7 +211,7 @@ By design, this project is **static-only**. It deliberately does **not** include
 
 ## ✅ Project status
 
-Implemented and tested: ingestion, hashing, entropy, strings/IOCs, PE/ELF/Mach-O/WASM/ZIP parsers, JS/TS analysis, provider detection, evidence model, knowledge graph, sessions, reporting, CLI, and the MCP server (38 passing tests; typechecked; CI on Linux/macOS/Windows × Node 18/20/22).
+Implemented and tested: ingestion, hashing, entropy, strings/IOCs, PE/ELF/Mach-O/WASM/ZIP parsers, JS/TS analysis, build diffing, provider detection, evidence model, knowledge graph, sessions, reporting, CLI, and the MCP server (45 passing tests; typechecked; CI on Linux/macOS/Windows × Node 18/20/22).
 
 Planned: optional provider *adapters* that invoke Ghidra/radare2/JADX for decompilation, richer `.NET` and DEX structure parsing, and a desktop workspace. Runtime/dynamic analysis is intentionally out of scope.
 
