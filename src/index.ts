@@ -10,6 +10,8 @@ export { ingestTarget, ingestBuffer, CAPABILITY_MAP } from "./ingest/ingest.js";
 export { identifyBuffer } from "./ingest/identify.js";
 export { analyzeArtifact, analyzePath } from "./analyze/static.js";
 export { analyzeJavaScriptSource } from "./analyze/javascript.js";
+export { diffReports, renderDiff, hasChanges } from "./analyze/diff.js";
+export type { ArtifactDiff, SetChange } from "./analyze/diff.js";
 
 export { parsePe } from "./formats/pe.js";
 export { parseElf } from "./formats/elf.js";
