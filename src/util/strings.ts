@@ -82,6 +82,18 @@ const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
 const PATH_RE = /\b[A-Za-z]:\\[^\s"'<>|?*]+|\/(?:usr|etc|var|home|opt|tmp|bin|lib)\/[^\s"'<>]+/g;
 const DOMAIN_RE = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}\b/gi;
 
+// File extensions that the domain pattern would otherwise mistake for TLDs.
+const NOT_TLDS = new Set([
+  "debug", "so", "dll", "exe", "sys", "txt", "json", "xml", "yml", "yaml", "js", "ts", "py", "rs", "go",
+  "c", "h", "cpp", "hpp", "cs", "java", "class", "jar", "png", "jpg", "gif", "svg", "dat", "bin", "log",
+  "ini", "cfg", "conf", "tmp", "bak", "md", "html", "htm", "css", "map", "lock", "pdb", "obj", "lib",
+]);
+
+function looksLikeDomain(d: string): boolean {
+  const tld = d.slice(d.lastIndexOf(".") + 1).toLowerCase();
+  return !NOT_TLDS.has(tld) && !/^[0-9a-f]{16,}\./i.test(d);
+}
+
 export interface StringIndicators {
   urls: string[];
   ips: string[];
@@ -113,6 +125,6 @@ export function indicatorsFromText(text: string): StringIndicators {
     emails: uniq(text.match(EMAIL_RE) ?? []),
     paths: uniq(text.match(PATH_RE) ?? []),
     // domains that already appear inside a URL are less interesting on their own
-    domains: uniq((text.match(DOMAIN_RE) ?? []).filter((d) => !urlBlob.includes(d))),
+    domains: uniq((text.match(DOMAIN_RE) ?? []).filter((d) => !urlBlob.includes(d) && looksLikeDomain(d))),
   };
 }
