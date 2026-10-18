@@ -11,6 +11,7 @@ import { extractStrings } from "../util/strings.js";
 import { detectProviders, providersForFormat } from "../providers/external.js";
 import { renderProviders, renderReport, type ReportFormat } from "../report/report.js";
 import { buildGraph } from "../evidence/graph.js";
+import { diffReports, hasChanges, renderDiff } from "../analyze/diff.js";
 
 const HELP = `spectra ${VERSION} — static software analysis toolkit
 
@@ -28,6 +29,7 @@ COMMANDS
   providers                List external analysis providers and availability
   report <target>          Write a report (use --format and --out)
   graph <target>           Emit the knowledge graph as JSON
+  diff <a> <b>             Compare two builds: imports, exports, sections, deps, symbols
   mcp                      Start the MCP server (stdio)
 
 OPTIONS
@@ -122,6 +124,24 @@ async function main(argv: string[]): Promise<number> {
     // The stdio server runs until stdin closes, at which point it exits the
     // process itself. Never resolve here, so the CLI does not exit first.
     return new Promise<number>(() => {});
+  }
+
+  if (args.command === "diff") {
+    const [a, b] = args.positionals;
+    if (!a || !b) {
+      process.stderr.write("error: diff needs two targets: spectra diff <old> <new>\n");
+      return 2;
+    }
+    try {
+      const [ra, rb] = await Promise.all([analyzePath(a), analyzePath(b)]);
+      const d = diffReports(ra, rb);
+      const fmt = args.format === "terminal" ? "terminal" : args.format;
+      await output(renderDiff(d, fmt, useColor && fmt === "terminal"), args.out);
+      return hasChanges(d) ? 1 : 0; // like `diff`: exit 1 when the targets differ
+    } catch (e) {
+      process.stderr.write(`error: ${(e as Error).message}\n`);
+      return 2;
+    }
   }
 
   // Commands below take a target.
