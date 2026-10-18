@@ -31,6 +31,7 @@ describe("MCP tool layer", () => {
         "inspect_imports",
         "analyze_javascript",
         "inspect_resources",
+        "diff_targets",
         "search_evidence",
         "create_report",
         "list_providers",

@@ -50,4 +50,8 @@ describe("string extraction", () => {
     expect(ind.ips).toContain("10.0.0.5");
     expect(ind.paths.some((p) => p.includes("Windows"))).toBe(true);
   });
+  it("does not mistake file names for domains", () => {
+    const ind = indicatorsFromText("load 4d2960fdd962fc224d77beeb35bb71aa7b115d.debug libc.so config.json via api.example.org");
+    expect(ind.domains).toEqual(["api.example.org"]);
+  });
 });

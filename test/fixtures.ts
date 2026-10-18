@@ -7,7 +7,9 @@ import { deflateRawSync } from "node:zlib";
 import { crc32 } from "../src/util/hash.js";
 
 /** Minimal 64-bit PE (PE32+) for x86-64 with one section, one import and one export. */
-export function makePe(): Buffer {
+export function makePe(opts: { exportName?: string; importName?: string } = {}): Buffer {
+  const exportName = opts.exportName ?? "DoWork";
+  const importName = opts.importName ?? "ExitProcess";
   const SIZE = 0x600;
   const buf = Buffer.alloc(SIZE);
   // DOS header
@@ -64,7 +66,7 @@ export function makePe(): Buffer {
   buf.writeBigUInt64LE(0n, toFile(oftRva) + 8); // terminator
   buf.write("KERNEL32.dll\0", toFile(dllNameRva), "latin1");
   buf.writeUInt16LE(0, toFile(thunkNameRva)); // hint
-  buf.write("ExitProcess\0", toFile(thunkNameRva) + 2, "latin1");
+  buf.write(importName + "\0", toFile(thunkNameRva) + 2, "latin1");
 
   // Export directory
   const expOff = toFile(exportRva);
@@ -73,7 +75,7 @@ export function makePe(): Buffer {
   buf.writeUInt32LE(addrOfNamesRva, expOff + 32);
   const expNameRva = 0x1170;
   buf.writeUInt32LE(expNameRva, toFile(addrOfNamesRva));
-  buf.write("DoWork\0", toFile(expNameRva), "latin1");
+  buf.write(exportName + "\0", toFile(expNameRva), "latin1");
 
   return buf;
 }
@@ -141,7 +143,7 @@ export function makeMacho(): Buffer {
 }
 
 /** Minimal WASM module: header + a type/import/export section with named entries. */
-export function makeWasm(): Buffer {
+export function makeWasm(exportName = "run"): Buffer {
   const parts: number[] = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
   const enc = (s: string) => {
     const b = Buffer.from(s, "utf8");
@@ -157,7 +159,7 @@ export function makeWasm(): Buffer {
   ];
   parts.push(2, imp.length, ...imp);
   // export section (id 7): one export "run" kind func index 0
-  const exp = [1, ...enc("run"), 0x00, 0];
+  const exp = [1, ...enc(exportName), 0x00, 0];
   parts.push(7, exp.length, ...exp);
   return Buffer.from(parts);
 }
