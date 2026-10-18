@@ -19,6 +19,8 @@ Still, treat results as data. When analysing live malware, do so in an isolated 
 
 ## Reporting a vulnerability
 
-If you find a security issue in SpectraProbe itself (for example a parser that can be made to hang, exhaust memory, or crash on a crafted file), please open a GitHub issue describing the problem and attach a minimal, **non-malicious** reproduction fixture where possible. For sensitive reports, open a minimal issue asking for a private channel.
+**Please do not open a public issue for security problems.**
 
-We aim to acknowledge reports promptly and fix denial-of-service and memory-safety issues as a priority.
+Report privately through GitHub: open the **Security** tab of this repository and click **Report a vulnerability**. Only the maintainer can see the report. Examples: a parser that can be made to hang, exhaust memory or crash on a crafted file. Attach a minimal, **non-malicious** reproduction fixture where possible.
+
+We aim to acknowledge reports within 3 days and fix denial-of-service and memory-safety issues as a priority.
