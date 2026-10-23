@@ -2,6 +2,8 @@
 
 # 🛰️ SpectraProbe
 
+<img src="spectraprobe-mark.svg" width="72" alt="SpectraProbe logo">
+
 ### Original open-source static software analysis toolkit
 
 **Identify, hash and inspect executables, archives, WebAssembly and JavaScript — from one CLI, one library, and a real MCP server. No cloud. No telemetry. Everything runs locally.**
@@ -22,6 +24,19 @@
 </div>
 
 ---
+
+## How it works
+
+SpectraProbe identifies a local file from its format, extracts static evidence with format-aware readers and optional analysis providers, then presents findings through the CLI, library, or MCP server. Input files are inspected, never executed.
+
+```mermaid
+flowchart LR
+    A[Local file or project] --> B[Identify format]
+    B --> C[Extract static evidence]
+    C --> D[Optional analysis providers]
+    D --> E[Findings and relationships]
+    E --> F[CLI, library, or MCP output]
+```
 
 ## Why
 
